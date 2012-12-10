@@ -7,6 +7,8 @@ This is a dictionary application runs on iOS device(iPhone/iPad). It uses the pr
 - shows a definition of the term
 - shows candidates of input text
 - incremental search
+- show history of search
+- quick search with text if in pasteboard
 
 # LICENSE
 New BSD license
@@ -43,3 +45,6 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
+
+
+
