@@ -45,6 +45,7 @@ BOOL useEnglishDict = NO;
 
         _checker = [[UITextChecker alloc] init];
         // NSLog(@"available language:%@", [UITextChecker availableLanguages]);
+        self.history = [[History alloc] init];
     }
     return self;
 }
@@ -60,7 +61,19 @@ BOOL useEnglishDict = NO;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    
+    [self.navigationController setNavigationBarHidden:YES animated:NO];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 6.0)
+    {
+        [self.searchBar setShowsScopeBar:NO];
+        [self.searchBar sizeToFit];
+    }
+    
+    [self loadTextFromClipboard];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(appHasGoneInForeground:)
+                                                 name:UIApplicationWillEnterForegroundNotification
+                                               object:nil];
 }
 
 - (void)viewDidUnload
@@ -74,6 +87,7 @@ BOOL useEnglishDict = NO;
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    [self.tableView reloadData];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -113,7 +127,7 @@ BOOL useEnglishDict = NO;
             return [_suggestions count];
             break;
         case 2: // history /* not implemented yet */
-            return [_history count];
+            return [self.history.terms count];
             break;
         default:
             break;
@@ -161,7 +175,7 @@ BOOL useEnglishDict = NO;
             text = [_suggestions objectAtIndex:[indexPath row]];
             break;
         case 2:
-            text = [_history objectAtIndex:[indexPath row]];
+            text = [[self.history reversedTerm] objectAtIndex:[indexPath row]];
             break;
         default:
             text = @"Error";
@@ -171,39 +185,12 @@ BOOL useEnglishDict = NO;
     return cell;
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source.
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *term = [tableView cellForRowAtIndexPath:indexPath].textLabel.text;
     if (term) {
+        [self.history add:term];
+        
         UIReferenceLibraryViewController *controller = [[UIReferenceLibraryViewController alloc] initWithTerm:term];
         [self.navigationController presentModalViewController:controller animated:YES];
         // [self.navigationController pushViewController:controller animated:YES];
@@ -220,7 +207,7 @@ BOOL useEnglishDict = NO;
     [self tableView:self.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
 }
 
-- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
+-(void)searchForTable:(NSString*)searchText
 {
     // 入力した文字列を使って候補を取得
     _suggestions = [_checker guessesForWordRange:NSMakeRange(0, [searchText length])
@@ -235,6 +222,11 @@ BOOL useEnglishDict = NO;
         self.matched = nil;
     }
     [self.tableView reloadData];
+}
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
+{
+    [self searchForTable:searchText];
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
@@ -274,4 +266,23 @@ BOOL useEnglishDict = NO;
             break;
     }
 }
+
+-(void)loadTextFromClipboard
+{
+    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+    NSString *text = [pasteboard string];
+    if(text)
+    {
+        self.searchBar.text = text;
+        [self searchForTable:text];
+        [self.searchBar becomeFirstResponder];
+    }
+    
+}
+
+-(void)appHasGoneInForeground:(NSNotification*)notification
+{
+    [self loadTextFromClipboard];
+}
+
 @end

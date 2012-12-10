@@ -3,10 +3,11 @@
 //  InDict
 //
 //  Created by Hirohito Kato on 11/11/09.
-//  Copyright (c) 2011 KatokichiSoft. All rights reserved.
+//  Copyright (c) 2011 KatokichiSoft.
 //
 
 #import <UIKit/UIKit.h>
+#import "History.h"
 
 @class UITextChecker;
 @interface KSMasterViewController : UITableViewController
@@ -17,5 +18,6 @@
 
 @property (copy, nonatomic) NSString *matched;
 @property (strong, nonatomic) NSArray *suggestions;
-@property (strong, nonatomic) NSArray *history; // not implemented yet
+@property (strong, nonatomic) History *history;
+
 @end
