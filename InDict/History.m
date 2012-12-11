@@ -50,7 +50,7 @@ static NSString* const historyKeyForUserDefault = @"history";
     NSMutableArray *newTerms = [NSMutableArray array];
     for (NSString *val in self.terms)
     {
-        if(val != term)
+        if(![val isEqualToString:term])
         {
             [newTerms addObject:val];
         }
